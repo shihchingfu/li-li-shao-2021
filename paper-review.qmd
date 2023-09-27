@@ -1,0 +1,98 @@
+---
+format: revealjs
+self-contained: true
+---
+
+##
+
+![<https://10.1016/j.ascom.2021.100483>](figures/title_authors.png)
+
+##
+
+![](figures/title_abstract.png)
+
+
+## Summary
+
+- GPs assuming Gaussian noise are susceptible to bias from outliers.
+- Alternative "robust" formulations are not analytically tractable.
+- Propose an iterative method for trimming extreme observations.
+- Outperforms existing "robust" methods at the cost of execution time (tripled).
+- Aiming at model fit rather than parameter inference.
+
+
+## GP Primer
+
+For data $\{(\boldsymbol{x}_i, y_i); i = 1, \ldots, N\}$ with $\boldsymbol{x}_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$,
+
+$$y_i = f(\boldsymbol{x}_i) + \varepsilon_i$$
+
+We propose a underlying function,
+
+$$f(\cdot) \sim\mathcal{MVN} \left( \mu(\boldsymbol{x};\boldsymbol\theta_\mu), k(\boldsymbol{x}, \boldsymbol{x'}; \boldsymbol{\theta}_k) \right)$$
+
+where $\mu(\cdot)$ is the mean function and $k(\cdot)$ is the covariance kernel function, with hyperparameters $\boldsymbol\theta_\mu$ and $\boldsymbol\theta_k$, respectively.
+
+## "Standard GP"
+
+Assumes observational noise is Gaussian distributed:
+$$\varepsilon \sim \mathcal{N}(0, \sigma^2_n)$$
+
+which makes $\boldsymbol{y}$ also Gaussian distributed and analytically tractable.
+
+## Maximise the Likelihood
+
+If noise is assumed as Gaussian then the marginal likelihood can be expressed analytically and hyperparameters found via maximum a posteriori estimation:
+
+$$\mathrm p(\boldsymbol Y|\boldsymbol X) = \int \mathrm p(\boldsymbol{Y} | f, \boldsymbol{X})\cdot \mathrm p(f|\boldsymbol X) \mathrm{d}f $$
+
+$$\log (\mathrm p(\boldsymbol{Y} | \boldsymbol{X}, \boldsymbol{\theta})) = -\frac{1}{2}(\boldsymbol{Y} - \boldsymbol{\mu})^\top (\boldsymbol{K} + \sigma^2_n \boldsymbol{I})^{-1}(\boldsymbol Y - \boldsymbol\mu) - \frac{1}{2}\log(|\boldsymbol{K} + \sigma^2_n\boldsymbol I|) - \frac{n}{2}\log(2\pi)$$
+
+But what if the noise is not Gaussian?
+
+## Robust Variants of GPs
+
+- Use heavier tailed distributions, e.g., Student's t, Laplace, Gaussian mixtures.
+
+- But these are usually not analytically tractable and tricky to implement.
+
+- And outliers still influence the model fit.
+
+- Alternative: (iteratively) trim extreme values based on some criteria.
+
+## Iterative Trimmining Gaussian Process (ITGP)
+
+Trim a proportion of points with the largest absolute residuals after fitting a GP.
+
+Comprises three phases:
+
+1. Shrinking & Concentrating
+
+2. Reweighting
+
+
+
+
+## Case Study: Neal Datasets
+
+## Case Study: Star Clusters
+
+
+
+
+
+
+
+## Strengths
+
+## Limitations
+
+
+## Comments on Paper {.small}
+
+
+
+## Takeaways
+
+
+
