@@ -3,25 +3,21 @@ format: revealjs
 self-contained: true
 ---
 
-##
+## 
 
-![<https://10.1016/j.ascom.2021.100483>](figures/title_authors.png)
-
-##
-
-![](figures/title_abstract.png)
-
+![<https://10.1016/j.ascom.2021.100483>](figures/title-abstract.png)
 
 ## Summary
 
-- GPs assuming Gaussian noise are susceptible to bias from outliers.
-- Alternative "robust" formulations are not analytically tractable.
-- Propose an iterative method for trimming extreme observations.
-- Outperforms existing "robust" methods at the cost of execution time (tripled).
-- Aiming at model fit rather than parameter inference.
+-   GPs assuming Gaussian noise suffer bias from outliers.
+-   "Robust" formulations are often not analytically tractable.
+-   Propose a method for iteratively trimming extreme observations (ITGP).
+-   Two synthetic data studies.
+-   Outperforms existing "robust" methods at the cost of execution time.
+-   Targets model fit rather than parameter inference.
+-   Use with caution!
 
-
-## GP Primer
+## GP Notation
 
 For data $\{(\boldsymbol{x}_i, y_i); i = 1, \ldots, N\}$ with $\boldsymbol{x}_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$,
 
@@ -35,8 +31,7 @@ where $\mu(\cdot)$ is the mean function and $k(\cdot)$ is the covariance kernel 
 
 ## "Standard GP"
 
-Assumes observational noise is Gaussian distributed:
-$$\varepsilon \sim \mathcal{N}(0, \sigma^2_n)$$
+Assumes observational noise is Gaussian distributed: $$\varepsilon \sim \mathcal{N}(0, \sigma^2_\textrm{n})$$
 
 which makes $\boldsymbol{y}$ also Gaussian distributed and analytically tractable.
 
@@ -46,53 +41,120 @@ If noise is assumed as Gaussian then the marginal likelihood can be expressed an
 
 $$\mathrm p(\boldsymbol Y|\boldsymbol X) = \int \mathrm p(\boldsymbol{Y} | f, \boldsymbol{X})\cdot \mathrm p(f|\boldsymbol X) \mathrm{d}f $$
 
-$$\log (\mathrm p(\boldsymbol{Y} | \boldsymbol{X}, \boldsymbol{\theta})) = -\frac{1}{2}(\boldsymbol{Y} - \boldsymbol{\mu})^\top (\boldsymbol{K} + \sigma^2_n \boldsymbol{I})^{-1}(\boldsymbol Y - \boldsymbol\mu) - \frac{1}{2}\log(|\boldsymbol{K} + \sigma^2_n\boldsymbol I|) - \frac{n}{2}\log(2\pi)$$
-
+```{=tex}
+\begin{multline}
+\log (\mathrm p(\boldsymbol{Y} | \boldsymbol{X}, \boldsymbol{\theta})) =\\ -\frac{1}{2}(\boldsymbol{Y} - \boldsymbol{\mu})^\top (\boldsymbol{K} + \sigma^2_n \boldsymbol{I})^{-1}(\boldsymbol Y - \boldsymbol\mu) - \frac{1}{2}\log(|\boldsymbol{K} + \sigma^2_n\boldsymbol I|) - \frac{n}{2}\log(2\pi)
+\end{multline}
+```
 But what if the noise is not Gaussian?
 
 ## Robust Variants of GPs
 
-- Use heavier tailed distributions, e.g., Student's t, Laplace, Gaussian mixtures.
+-   Use heavier tailed distributions, e.g., Student-t, Laplace, Gaussian mixtures.
 
-- But these are usually not analytically tractable and tricky to implement.
+-   But these are usually not analytically tractable and tricky to implement.
 
-- And outliers still influence the model fit.
+-   And outliers still influence the model fit.
 
-- Alternative: (iteratively) trim extreme values based on some criteria.
+**Propose:** trim extreme values based on some criteria and refit.
 
-## Iterative Trimmining Gaussian Process (ITGP)
+## GP and Iterative Trimming (ITGP)
 
-Trim a proportion of points with the largest absolute residuals after fitting a GP.
+-   **Premise:** Trim a proportion of points with the largest absolute residuals after fitting a GP.
 
-Comprises three phases:
+-   **Parameters:** $\alpha_1$, $\alpha_2$, $n_\textrm{sh}$, and $n_\textrm{cc}$.
 
-1. Shrinking & Concentrating
+-   Comprises three phases:
 
-2. Reweighting
+    1.  Shrinking
+
+    2.  Concentrating
+
+    3.  Reweighting
+
+## Shrinking & Concentrating
+
+1.  Train standard GP on full sample and calculate normalised residual for each predicted point.
+
+2.  Retrain GP with proportion $\alpha$ of points which have the smallest normalised residuals.
+
+3.  Repeat Step 2 for $n_\textrm{sh}$ times while $\alpha: 1 \rightarrow \alpha_1$.
+
+4.  Repeat Step 2 for $n_\textrm{cc}$ times keeping $\alpha$ constant.
+
+Trimmed sample will underestimate the true variance in the sample so there's an extra correction factor at different $\alpha$'s.
+
+## Reweighting
+
+1.  Exclude points whose corrected normalised residuals ($r_i$) are amongst the $(1 - \alpha_2)$% largest.
+
+2.  Retrain GP.
+
+Finally identify outliers as those observations whose corrected normalised residuals $r_i > 3$.
+
+
+## Synthetic Neal (1997) Datasets {.smaller}
+
+$$f(x) = 0.3 + 0.4 x + 0.5 \sin(2.7 x) + \frac{1.1}{1+x^2} + \varepsilon$$
+
+<center>![](figures/section3.1.png){width="50%"} ![](figures/figure03.png){width="40%"}</center>
+
+## Results
+
+RMSE of the prediction residuals of each test set
+
+![](figures/figure04.png)
+
+## Parameter Settings
+
+:::: {.columns}
+
+::: {.column width="10%}
+
+| Parameter       | Suggested |
+| --------------- | --------- |
+| $\alpha_1$      | 0.5       |
+| $n_\textrm{sh}$ | 2         |
+| $n_\textrm{cc}$ | 2         |
+| $\alpha_2$      | 0.975     |
+
+:::
+
+::: {.column width="50%"}
+
+![](figures/figure02.png)
+
+:::
+
+::::
 
 
 
 
-## Case Study: Neal Datasets
+## Synthetic Star Clusters (Li et. al 2020)
 
-## Case Study: Star Clusters
+<center>![](figures/figure06.png){width="60%"}</center>
 
+## Results
 
-
-
-
-
-
-## Strengths
+<center>![](figures/figure07.png){width="60%"}</center>
 
 ## Limitations
 
+-   biased by influential points near the boundary of data coverage where local SNR is low.
+
+-   computation time is 3 to 5 times of standard GP.
+
+    <center>![](figures/figure05.png)</center>
+
+## Practical Guidance
+
+<center>![](figures/section2.3.png){width=70%}</center>
 
 ## Comments on Paper {.small}
 
-
-
-## Takeaways
-
-
-
+-   very thorough simulation study, extended appendix on parameter selection.
+-   result is not too surprising despite the many caveats.
+-   again GP mean function is ignored!
+-   all based on point estimates rather than intervals or distributions.
+-   focus is on identifying outliers, not explaining them.
